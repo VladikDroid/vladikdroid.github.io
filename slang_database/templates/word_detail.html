@@ -1,0 +1,263 @@
+{% extends "base.html" %}
+
+{% block title %}{{ word.word }} - Бригада.ру{% endblock %}
+
+{% block content %}
+<div class="word-detail-container">
+    <!-- Навигация -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Главная</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('search') }}">Поиск</a></li>
+            <li class="breadcrumb-item active">{{ word.word }}</li>
+        </ol>
+    </nav>
+
+    <!-- Основная карточка слова -->
+    <div class="word-detail-card" style="padding: 1.5rem;">
+        <!-- Заголовок с кнопками -->
+        <div class="d-flex justify-content-between align-items-start mb-4">
+            <div>
+                <h1 style="font-size: 2.5rem; color: var(--primary-color); margin-bottom: 0.5rem;">{{ word.word }}</h1>
+                <div class="d-flex flex-wrap gap-2">
+                    {% if word.period %}
+                    <span class="badge bg-info">{{ word.period.name }}</span>
+                    {% endif %}
+                    {% if word.category %}
+                    <span class="badge" style="background-color: {{ word.category.color or '#6c757d' }} !important; color: #fff !important;">{{ word.category.name }}</span>
+                    {% endif %}
+                    {% if word.is_verified %}
+                    <span class="badge bg-success"><i class="bi bi-check-circle"></i> Проверено</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-sm btn-outline-danger" onclick="toggleFavorite({{ word.id }})" data-fav-toggle="{{ word.id }}" id="fav-btn-{{ word.id }}">
+                    <i class="bi bi-heart"></i>
+                </button>
+            </div>
+        </div>
+        <!-- Значение -->
+        <div class="word-section" style="padding: 1rem; margin-bottom: 1rem; background: var(--bg-card-hover); border: none; border-left: 3px solid var(--primary-color);">
+            <h5 style="margin-bottom: 0.5rem; color: var(--primary-color);"><i class="bi bi-book"></i> Значение</h5>
+            <p style="font-size: 1.1rem; line-height: 1.6; margin-bottom: 0; color: var(--text-primary);">— {{ word.meaning }}</p>
+        </div>
+
+        <!-- Синонимы -->
+        {% if word.synonyms %}
+        <div class="word-section" style="padding: 1rem; margin-bottom: 1rem; background: var(--bg-card-hover); border: none; border-left: 3px solid var(--primary-color);">
+            <h5 style="margin-bottom: 0.5rem; color: var(--primary-color);"><i class="bi bi-arrows-angle-contract"></i> Синонимы</h5>
+            <div class="d-flex flex-wrap gap-2">
+                {% for synonym in word.get_synonyms_list() %}
+                <span class="badge" style="background: linear-gradient(135deg, #66BB6A, #43A047); color: #fff;">{{ synonym }}</span>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Антонимы -->
+        {% if word.antonyms %}
+        <div class="word-section" style="padding: 1rem; margin-bottom: 1rem; background: var(--bg-card-hover); border: none; border-left: 3px solid #EF5350;">
+            <h5 style="margin-bottom: 0.5rem; color: #EF5350;"><i class="bi bi-arrows-angle-expand"></i> Антонимы</h5>
+            <div class="d-flex flex-wrap gap-2">
+                {% for antonym in word.get_antonyms_list() %}
+                <span class="badge" style="background: linear-gradient(135deg, #EF5350, #E53935); color: #fff;">{{ antonym }}</span>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Происхождение -->
+        {% if word.origin %}
+        <div class="word-section" style="padding: 1rem; margin-bottom: 1rem; background: var(--bg-card-hover); border: none; border-left: 3px solid var(--primary-color);">
+            <h5 style="margin-bottom: 0.5rem; color: var(--primary-color);"><i class="bi bi-diagram-3"></i> Происхождение</h5>
+            <p style="margin-bottom: 0; color: var(--text-secondary);">{{ word.origin }}</p>
+        </div>
+        {% endif %}
+
+        <!-- Пример использования -->
+        {% if word.example %}
+        <div class="word-section" style="padding: 1rem; margin-bottom: 1rem; background: var(--bg-card-hover); border: none; border-left: 3px solid var(--primary-color);">
+            <h5 style="margin-bottom: 0.5rem; color: var(--primary-color);"><i class="bi bi-chat-quote"></i> Пример</h5>
+            <div class="alert alert-info" style="background: #E3F2FD; border-left: 4px solid var(--primary-color); margin-bottom: 0;">
+                <em style="color: var(--primary-color);">"{{ word.example }}"</em>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Теги -->
+        {% if word.tags %}
+        <div class="word-section" style="padding: 1rem; margin-bottom: 1rem; background: var(--bg-card-hover); border: none; border-left: 3px solid var(--primary-color);">
+            <h5 style="margin-bottom: 0.5rem; color: var(--primary-color);"><i class="bi bi-tags"></i> Теги</h5>
+            <div class="d-flex flex-wrap gap-2">
+                {% for tag in word.tags %}
+                <a href="{{ url_for('tag_words', tag_name=tag.name) }}" 
+                   class="badge text-decoration-none" 
+                   style="background: var(--primary-gradient); color: #fff;">{{ tag.name }}</a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Источники -->
+        {% if word.sources %}
+        <div class="word-section" style="padding: 1rem; margin-bottom: 1rem; background: var(--bg-card-hover); border: none; border-left: 3px solid var(--primary-color);">
+            <h5 style="margin-bottom: 0.5rem; color: var(--primary-color);"><i class="bi bi-link-45deg"></i> Источники</h5>
+            <ul class="list-group" style="margin-bottom: 0;">
+                {% for source in word.sources %}
+                <li class="list-group-item" style="background: var(--bg-white); border-color: var(--border-color); padding: 0.5rem 0.75rem;">
+                    <strong style="color: var(--primary-color);">{{ source.source_type|capitalize }}</strong>
+                    {% if source.title %} — {{ source.title }}{% endif %}
+                    {% if source.author %} / {{ source.author }}{% endif %}
+                    {% if source.year %} ({{ source.year }}){% endif %}
+                    {% if source.url %}<br><a href="{{ source.url }}" target="_blank" style="font-size: 0.85rem;">{{ source.url }}</a>{% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <!-- Голосование -->
+        <div class="d-flex justify-content-between align-items-center mt-3 pt-3" style="border-top: 1px solid var(--border-color);">
+            <small class="text-muted" style="font-size: 0.85rem;">
+                <div>{{ word.created_at.strftime('%d.%m.%Y %H:%M') }}</div>
+                {% if word.author %}<div>Автор: {{ word.author.username }}</div>{% endif %}
+            </small>
+            <div class="btn-group" role="group">
+                <button class="btn btn-outline-primary btn-sm" onclick="vote('{{ word.id }}', 1)" style="border-radius: 8px 0 0 8px;">
+                    <i class="bi bi-hand-thumbs-up"></i>
+                </button>
+                <span class="btn btn-sm" disabled id="vote-score-{{ word.id }}" style="background: var(--bg-card-hover); border: 1px solid var(--border-color); min-width: 40px; border-radius: 0;">{{ word.get_vote_score() }}</span>
+                <button class="btn btn-outline-primary btn-sm" onclick="vote('{{ word.id }}', -1)" style="border-radius: 0 8px 8px 0;">
+                    <i class="bi bi-hand-thumbs-down"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Эволюция слова -->
+    <div class="word-detail-card">
+        <h4 class="mb-4" style="color: var(--primary-color);"><i class="bi bi-diagram-3"></i> Эволюция слова</h4>
+        <div id="evolution-timeline">
+            <div class="text-center text-muted py-4"><i class="bi bi-hourglass-split"></i> Загрузка...</div>
+        </div>
+    </div>
+
+    <!-- Похожие слова -->
+    <div class="word-detail-card">
+        <h4 class="mb-4" style="color: var(--primary-color);"><i class="bi bi-lightbulb"></i> Похожие слова</h4>
+        <div id="similar-words" class="list-group">
+            <div class="text-center text-muted py-4"><i class="bi bi-hourglass-split"></i> Загрузка...</div>
+        </div>
+    </div>
+
+    <!-- Навигация -->
+    <div class="word-detail-card text-center">
+        <div class="row g-3">
+            <div class="col-md-4">
+                <a href="{{ url_for('search', period=word.period_id) }}" class="btn btn-outline-primary w-100"><i class="bi bi-search"></i> Этот период</a>
+            </div>
+            <div class="col-md-4">
+                <a href="{{ url_for('search', category=word.category_id) }}" class="btn btn-outline-secondary w-100"><i class="bi bi-folder"></i> Эта категория</a>
+            </div>
+            <div class="col-md-4">
+                <a href="{{ url_for('export_json') }}" class="btn btn-outline-success w-100"><i class="bi bi-download"></i> JSON</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Комментарии -->
+    <div class="word-detail-card">
+        <h4 class="mb-4" style="color: var(--primary-color);"><i class="bi bi-chat-dots"></i> Комментарии</h4>
+        <form method="POST" action="{{ url_for('add_comment', word_id=word.id) }}">
+            <div class="mb-3">
+                <textarea class="form-control" name="content" rows="3" placeholder="Комментарий..." required></textarea>
+            </div>
+            <div class="mb-3">
+                <input type="text" class="form-control" name="author" placeholder="Имя (необязательно)">
+            </div>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-send"></i> Отправить</button>
+        </form>
+        <hr style="border-color: var(--border-color); margin: 1.5rem 0;">
+        {% if word.comments %}
+        <div class="comments-list">
+            {% for comment in word.comments|reverse|list %}
+            {% if loop.index <= 10 %}
+            <div class="comment-item">
+                <small class="text-muted">
+                    {% if comment.content.startswith('**') %}
+                        <span style="color: var(--primary-color);">{{ comment.content.split('**')[1] }}</span>
+                    {% else %}
+                        Аноним
+                    {% endif %}
+                    • {{ comment.created_at.strftime('%d.%m.%Y %H:%M') }}
+                </small>
+                <p class="mb-0 mt-2" style="color: var(--text-primary);">
+                    {% if comment.content.startswith('**') %}
+                        {{ comment.content.split('**: ')[1] if '**: ' in comment.content else comment.content }}
+                    {% else %}
+                        {{ comment.content }}
+                    {% endif %}
+                </p>
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-muted text-center py-4">Комментариев нет. Будьте первым!</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal удаления -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background: var(--bg-white); border: 1px solid var(--border-color);">
+            <div class="modal-header" style="border-bottom: 1px solid var(--border-color);">
+                <h5 class="modal-title" style="color: var(--primary-color);">Удалить слово?</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                Удалить "<strong style="color: var(--primary-color);">{{ word.word }}</strong>"?
+            </div>
+            <div class="modal-footer" style="border-top: 1px solid var(--border-color);">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Отмена</button>
+                <form action="{{ url_for('delete_word', word_id=word.id) }}" method="POST"><button type="submit" class="btn btn-danger">Удалить</button></form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function vote(wordId, voteType) {
+    fetch('/api/vote', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({word_id: wordId, vote_type: voteType})})
+    .then(r => r.json()).then(data => { if (data.success) location.reload(); });
+}
+function toggleFavorite(wordId) {
+    fetch(`/api/favorite/${wordId}`, {method: 'POST'}).then(r => r.json()).then(data => alert(data.message));
+}
+document.addEventListener('DOMContentLoaded', function() {
+    const wordId = {{ word.id }};
+    fetch(`/api/word/${wordId}/evolution`).then(r => r.json()).then(data => {
+        const el = document.getElementById('evolution-timeline');
+        if (!data.length) { el.innerHTML = '<p class="text-muted text-center">Нет данных</p>'; return; }
+        let html = '<div class="border-start border-2" style="border-color: var(--primary-color)!important; padding-left: 1.5rem;">';
+        data.forEach(item => {
+            html += `<div class="mb-3 position-relative"><div class="position-absolute start-0 translate-middle rounded-circle" style="width:12px;height:12px;left:-1.8rem;background:${item.is_current?'var(--primary-color)':'var(--bg-card-hover)'};border:2px solid var(--primary-color)"></div>
+            <div class="card" style="background:var(--bg-card-hover);border:1px solid var(--border-color)"><div class="card-body py-2">
+            <h6 class="mb-1"><a href="/word/${item.id}" class="text-decoration-none" style="color: var(--primary-color);">${item.word}</a>${item.is_current?' <span class="badge bg-success ms-1">Текущее</span>':''}</h6>
+            <small class="text-muted">${item.decade||item.period}</small><p class="mb-0 mt-1 small text-muted">${item.meaning}</p></div></div></div>`;
+        });
+        el.innerHTML = html + '</div>';
+    }).catch(() => document.getElementById('evolution-timeline').innerHTML = '<p class="text-danger text-center">Ошибка</p>');
+    
+    fetch(`/api/word/${wordId}/similar`).then(r => r.json()).then(data => {
+        const el = document.getElementById('similar-words');
+        if (!data.length) { el.innerHTML = '<p class="text-muted text-center py-3 mb-0">Нет похожих</p>'; return; }
+        el.innerHTML = data.map(item => `<a href="/word/${item.id}" class="list-group-item list-group-item-action" style="background:var(--bg-card-hover);border-color:var(--border-color)"><div class="d-flex justify-content-between"><div><h6 class="mb-0" style="color: var(--primary-color);">${item.word}</h6><small class="text-muted">${item.meaning}...</small></div><span class="badge bg-secondary">${item.period}</span></div></a>`).join('');
+    }).catch(() => document.getElementById('similar-words').innerHTML = '<p class="text-danger text-center py-3 mb-0">Ошибка</p>');
+});
+</script>
+{% endblock %}

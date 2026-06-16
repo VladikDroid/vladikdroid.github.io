@@ -1,0 +1,130 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Избранное - База данных "Молодежный сленг"{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">
+    <i class="bi bi-heart-fill text-danger"></i> Избранные слова
+    <small class="text-muted" id="fav-total"></small>
+</h2>
+
+{% if words %}
+<div class="row mb-3">
+    <div class="col-md-12">
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> 
+            Избранные слова сохраняются в вашем браузере. 
+            <a href="#" onclick="clearFavorites(); return false;" class="alert-link">Очистить всё</a> |
+            <a href="#" onclick="exportFavorites(); return false;" class="alert-link">Экспорт</a> |
+            <label class="alert-link" style="cursor: pointer;">
+                Импорт
+                <input type="file" id="import-favorites" accept=".json" style="display: none;" onchange="importFavorites(this.files[0])">
+            </label>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-md-12">
+        <h5><i class="bi bi-heart-fill text-danger"></i> Избранные слова <span id="fav-total" class="text-muted"></span></h5>
+    </div>
+</div>
+
+<div class="row g-3">
+    {% for word in words %}
+    <div class="col-md-4">
+        <div class="card h-100 shadow-sm hover-shadow">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h5 class="card-title mb-0" style="color: var(--primary-color);">
+                        <a href="{{ url_for('word_detail', word_id=word.id) }}" class="text-decoration-none" style="color: var(--primary-color);">
+                            {{ word.word }}
+                        </a>
+                    </h5>
+                    <button class="btn btn-sm btn-outline-primary" onclick="toggleFavorite({{ word.id }})" style="border-color: var(--primary-color); color: var(--primary-color);">
+                        <i class="bi bi-heart-fill"></i>
+                    </button>
+                </div>
+                
+                <p class="card-text">{{ word.meaning[:100] }}{% if word.meaning|length > 100 %}...{% endif %}</p>
+                
+                <div class="mb-2">
+                    {% if word.period %}
+                    <span class="badge bg-info">{{ word.period.decade }}</span>
+                    {% endif %}
+                    {% if word.category %}
+                    <span class="badge" style="background-color: {{ word.category.color or '#6c757d' }} !important; color: #fff !important;">{{ word.category.name }}</span>
+                    {% endif %}
+                </div>
+                
+                {% if word.popularity > 0 %}
+                <small class="text-muted">
+                    <i class="bi bi-star"></i> Популярность: {{ word.popularity }}
+                </small>
+                {% endif %}
+            </div>
+            <div class="card-footer bg-white">
+                <a href="{{ url_for('word_detail', word_id=word.id) }}" class="btn btn-sm btn-outline-primary w-100">
+                    <i class="bi bi-eye"></i> Подробнее
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="card shadow-sm">
+            <div class="card-body text-center py-5">
+                <i class="bi bi-heart display-1 text-muted mb-3"></i>
+                <h4 class="text-muted">Пока нет избранных слов</h4>
+                <p class="text-muted">
+                    Добавляйте слова в избранное, нажимая на кнопку 
+                    <i class="bi bi-heart text-danger"></i> рядом со словом.
+                </p>
+                <a href="{{ url_for('search') }}" class="btn btn-primary btn-lg mt-3">
+                    <i class="bi bi-search"></i> Перейти к поиску
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Обновление счётчика избранных
+function updateFavCount() {
+    const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+    const count = favorites.length;
+    
+    document.getElementById('fav-count').textContent = count;
+    document.getElementById('fav-total').textContent = count > 0 ? `(${count})` : '';
+    
+    // Подсветка кнопок на странице
+    document.querySelectorAll('[data-fav-toggle]').forEach(btn => {
+        const wordId = parseInt(btn.dataset.favToggle);
+        if (favorites.includes(wordId)) {
+            btn.classList.add('text-danger');
+            btn.innerHTML = '<i class="bi bi-heart-fill"></i>';
+        } else {
+            btn.classList.remove('text-danger');
+            btn.innerHTML = '<i class="bi bi-heart"></i>';
+        }
+    });
+}
+
+// Очистить все избранные
+function clearFavorites() {
+    if (confirm('Удалить все слова из избранного?')) {
+        localStorage.removeItem('favorites');
+        location.reload();
+    }
+}
+
+// Обновить счётчик при загрузке
+document.addEventListener('DOMContentLoaded', updateFavCount);
+</script>
+{% endblock %}

@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}Редактировать {{ word.word }} - База данных "Молодежный сленг"{% endblock %}
+
+{% block content %}
+<h2 class="mb-4"><i class="bi bi-pencil"></i> Редактирование слова</h2>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('edit_word', word_id=word.id) }}">
+            <div class="row">
+                <div class="col-md-8 mb-3">
+                    <label for="word" class="form-label">Слово <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="word" name="word" required value="{{ word.word }}">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="popularity" class="form-label">Популярность (0-10)</label>
+                    <input type="number" class="form-control" id="popularity" name="popularity" 
+                           min="0" max="10" value="{{ word.popularity or 0 }}">
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="meaning" class="form-label">Значение <span class="text-danger">*</span></label>
+                <textarea class="form-control" id="meaning" name="meaning" rows="3" required>{{ word.meaning }}</textarea>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="period_id" class="form-label">Период</label>
+                    <select class="form-select" id="period_id" name="period_id">
+                        <option value="">Не указан</option>
+                        {% for period in periods %}
+                        <option value="{{ period.id }}" {% if word.period_id == period.id %}selected{% endif %}>
+                            {{ period.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label for="category_id" class="form-label">Категория</label>
+                    <select class="form-select" id="category_id" name="category_id">
+                        <option value="">Не указана</option>
+                        {% for category in categories %}
+                        <option value="{{ category.id }}" {% if word.category_id == category.id %}selected{% endif %}>
+                            {{ category.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="synonyms" class="form-label">Синонимы</label>
+                    <input type="text" class="form-control" id="synonyms" name="synonyms"
+                           value="{{ word.synonyms or '' }}"
+                           placeholder="через запятую: слово1, слово2">
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label for="antonyms" class="form-label">Антонимы</label>
+                    <input type="text" class="form-control" id="antonyms" name="antonyms"
+                           value="{{ word.antonyms or '' }}"
+                           placeholder="через запятую: слово1, слово2">
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="usage_frequency" class="form-label">Частота использования (1-10)</label>
+                    <input type="number" class="form-control" id="usage_frequency" name="usage_frequency" 
+                           min="1" max="10" value="{{ word.usage_frequency or 5 }}">
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label for="tags" class="form-label">Теги</label>
+                    <input type="text" class="form-control" id="tags" name="tags"
+                           value="{{ word.tags|map(attribute='name')|join(', ') }}"
+                           placeholder="через запятую: интернет, молодежь, 2020">
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="origin" class="form-label">Происхождение</label>
+                <input type="text" class="form-control" id="origin" name="origin" value="{{ word.origin or '' }}">
+            </div>
+
+            <div class="mb-3">
+                <label for="example" class="form-label">Пример использования</label>
+                <textarea class="form-control" id="example" name="example" rows="2">{{ word.example or '' }}</textarea>
+            </div>
+
+            <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" id="is_verified" name="is_verified"
+                       {% if word.is_verified %}checked{% endif %}>
+                <label class="form-check-label" for="is_verified">
+                    Слово проверено экспертом
+                </label>
+            </div>
+
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <a href="{{ url_for('word_detail', word_id=word.id) }}" class="btn btn-secondary">Отмена</a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-circle"></i> Сохранить изменения
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

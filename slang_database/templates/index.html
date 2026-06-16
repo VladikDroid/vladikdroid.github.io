@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% block title %}Главная - Бригада.ру{% endblock %}
+
+{% block content %}
+<!-- Hero секция - упрощённая -->
+<div class="row mb-5">
+    <div class="col-md-12">
+        <div class="text-center py-5">
+            <h1 class="display-3 mb-3" style="color: var(--primary-color); font-weight: 700;">
+                <i class="bi bi-shield-fill-check"></i> СЛЕНГ.РУ
+            </h1>
+            <p class="lead text-muted mb-4">
+                Современный словарь молодёжного сленга
+            </p>
+            
+            <!-- Статистика -->
+            <div class="row justify-content-center mb-4">
+                <div class="col-auto mx-3">
+                    <div class="display-4 fw-bold" style="color: var(--primary-color);">{{ total_words }}</div>
+                    <small class="text-muted">СЛОВ</small>
+                </div>
+                <div class="col-auto mx-3">
+                    <div class="display-4 fw-bold" style="color: #FF9800;">{{ periods|length }}</div>
+                    <small class="text-muted">ПЕРИОДОВ</small>
+                </div>
+                <div class="col-auto mx-3">
+                    <div class="display-4 fw-bold" style="color: #4CAF50;">{{ categories|length }}</div>
+                    <small class="text-muted">КАТЕГОРИЙ</small>
+                </div>
+            </div>
+            
+            <!-- Кнопки -->
+            <div class="d-flex flex-wrap gap-3 justify-content-center">
+                <a href="{{ url_for('add_word') }}" class="btn btn-primary btn-lg">
+                    <i class="bi bi-plus-circle"></i> Добавить слово
+                </a>
+                <a href="{{ url_for('search') }}" class="btn btn-outline-primary btn-lg">
+                    <i class="bi bi-search"></i> Поиск
+                </a>
+                {% if random_word %}
+                <a href="{{ url_for('word_detail', word_id=random_word.id) }}" class="btn btn-warning btn-lg">
+                    <i class="bi bi-shuffle"></i> Случайное
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Периоды -->
+<div class="row mb-5">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="mb-0" style="color: var(--primary-color); font-weight: 600;">
+                <i class="bi bi-clock-history"></i> Периоды
+            </h2>
+            <a href="{{ url_for('statistics') }}" class="btn btn-outline-primary btn-sm">
+                Вся статистика <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+        <div class="row g-3">
+            {% for period in periods[:6] %}
+            <div class="col-md-4 col-lg-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title neon-text-green">{{ period.name }}</h5>
+                        <p class="card-text text-muted">{{ period.description[:80] }}...</p>
+                        <span class="badge bg-info">{{ period.decade }}</span>
+                    </div>
+                    <div class="card-footer bg-transparent border-0">
+                        <a href="{{ url_for('period_top_words', period_id=period.id) }}" class="btn btn-sm btn-outline-primary w-100">
+                            <i class="bi bi-trophy"></i> Топ слов
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Последние слова -->
+<div class="row">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="mb-0" style="color: var(--primary-color); font-weight: 600;">
+                <i class="bi bi-stars"></i> Последние добавленные
+            </h2>
+            <a href="{{ url_for('search', sort='created') }}" class="btn btn-outline-primary btn-sm">
+                Все слова <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+        <div class="row g-3">
+            {% for word in recent_words %}
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="card-title mb-0">
+                                <a href="{{ url_for('word_detail', word_id=word.id) }}" class="text-decoration-none" style="color: var(--primary-color);">
+                                    {{ word.word }}
+                                </a>
+                            </h5>
+                            {% if word.is_verified %}
+                            <span class="badge bg-success"><i class="bi bi-check-circle"></i></span>
+                            {% endif %}
+                        </div>
+                        <p class="card-text text-muted">{{ word.meaning[:100] }}{% if word.meaning|length > 100 %}...{% endif %}</p>
+                        <div class="mb-3">
+                            {% if word.period %}
+                            <span class="badge bg-info">{{ word.period.decade }}</span>
+                            {% endif %}
+                            {% if word.category %}
+                            <span class="badge bg-secondary">{{ word.category.name }}</span>
+                            {% endif %}
+                        </div>
+                        <a href="{{ url_for('word_detail', word_id=word.id) }}" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-eye"></i> Подробнее
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="col-12">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i> В базе пока нет слов. 
+                    <a href="{{ url_for('add_word') }}" class="alert-link">Добавьте первое слово!</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

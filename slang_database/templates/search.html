@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+
+{% block title %}Поиск - База данных "Молодежный сленг"{% endblock %}
+
+{% block content %}
+<h2 class="mb-4"><i class="bi bi-search"></i> Поиск слов</h2>
+
+<div class="row">
+    <div class="col-md-3">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-sliders"></i> Фильтры</h5>
+            </div>
+            <div class="card-body">
+                <form method="GET" action="{{ url_for('search') }}">
+                    <div class="mb-3">
+                        <label for="q" class="form-label">Поиск</label>
+                        <input type="text" class="form-control" id="q" name="q" 
+                               placeholder="Слово, значение, синонимы..." 
+                               value="{{ query }}">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="period" class="form-label">Период</label>
+                        <select class="form-select" id="period" name="period">
+                            <option value="">Все периоды</option>
+                            {% for period in periods %}
+                            <option value="{{ period.id }}" {% if selected_period == period.id %}selected{% endif %}>
+                                {{ period.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="category" class="form-label">Категория</label>
+                        <select class="form-select" id="category" name="category">
+                            <option value="">Все категории</option>
+                            {% for category in categories %}
+                            <option value="{{ category.id }}" {% if selected_category == category.id %}selected{% endif %}>
+                                {{ category.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="sort" class="form-label">Сортировать по</label>
+                        <select class="form-select" id="sort" name="sort">
+                            <option value="word" {% if sort_by == 'word' %}selected{% endif %}>По алфавиту</option>
+                            <option value="popularity" {% if sort_by == 'popularity' %}selected{% endif %}>По популярности</option>
+                            <option value="created" {% if sort_by == 'created' %}selected{% endif %}>По дате</option>
+                        </select>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-search"></i> Применить
+                        </button>
+                    </div>
+                </form>
+
+                <hr>
+                
+                <h6 class="mb-3"><i class="bi bi-tags"></i> Популярные теги</h6>
+                <div class="d-flex flex-wrap gap-1">
+                    {% for tag in popular_tags %}
+                    <a href="{{ url_for('tag_words', tag_name=tag.name) }}" 
+                       class="badge text-decoration-none" 
+                       style="background-color: {{ tag.color or '#6c757d' }} !important; color: #fff !important;">
+                        {{ tag.name }}
+                    </a>
+                    {% else %}
+                    {% for tag in ['интернет', 'молодежный', '2020-е', 'англицизм', 'мемы', 'игры', 'соцсети'] %}
+                    <a href="{{ url_for('search', q=tag) }}" class="badge bg-secondary text-decoration-none">
+                        {{ tag }}
+                    </a>
+                    {% endfor %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-9">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="mb-0">
+                {% if count %}
+                Найдено слов: <strong>{{ count }}</strong>
+                {% else %}
+                Слова не найдены
+                {% endif %}
+            </h4>
+            <div>
+                <a href="{{ url_for('export_csv') }}" class="btn btn-sm btn-outline-success">
+                    <i class="bi bi-file-earmark-spreadsheet"></i> CSV
+                </a>
+                <a href="{{ url_for('export_json') }}" class="btn btn-sm btn-outline-warning">
+                    <i class="bi bi-filetype-json"></i> JSON
+                </a>
+            </div>
+        </div>
+
+        {% if words %}
+        <div class="list-group">
+            {% for word in words %}
+            <div class="list-group-item list-group-item-action hover-shadow">
+                <div class="d-flex w-100 justify-content-between align-items-start">
+                    <div class="flex-grow-1">
+                        <h5 class="mb-1">
+                            <a href="{{ url_for('word_detail', word_id=word.id) }}" class="text-decoration-none">
+                                {{ word.word }}
+                            </a>
+                            {% if word.is_verified %}
+                            <span class="badge bg-success ms-1"><i class="bi bi-check-circle"></i> Проверено</span>
+                            {% endif %}
+                        </h5>
+                        <p class="mb-2">{{ word.meaning[:150] }}{% if word.meaning|length > 150 %}...{% endif %}</p>
+                        
+                        {% if word.synonyms %}
+                        <p class="mb-1 text-muted small">
+                            <i class="bi bi-arrows-angle-contract"></i> Синонимы: {{ word.synonyms[:50] }}...
+                        </p>
+                        {% endif %}
+                        
+                        <div class="mb-2">
+                            {% if word.period %}
+                            <span class="badge bg-info" style="background-color: '{{ word.period.color or '#667eea' }}'' !important;">
+                                {{ word.period.decade }}
+                            </span>
+                            {% endif %}
+                            {% if word.category %}
+                            <span class="badge" style="background-color: {{ word.category.color or '#6c757d' }} !important; color: #fff !important;">{{ word.category.name }}</span>
+                            {% endif %}
+                            {% for tag in word.tags[:3] %}
+                            <a href="{{ url_for('tag_words', tag_name=tag.name) }}" 
+                               class="badge" style="background-color: {{ tag.color or '#6c757d' }} !important;">
+                                {{ tag.name }}
+                            </a>
+                            {% endfor %}
+                            {% if word.tags|length > 3 %}
+                            <span class="badge bg-secondary">+{{ word.tags|length - 3 }}</span>
+                            {% endif %}
+                        </div>
+                        
+                        <small class="text-muted">
+                            <i class="bi bi-star"></i> Популярность: {{ word.popularity }} |
+                            <i class="bi bi-fire"></i> Частота: {{ word.usage_frequency or 'N/A' }} |
+                            <i class="bi bi-heart"></i> Рейтинг: {{ word.get_vote_score() }}
+                        </small>
+                    </div>
+                    
+                    <div class="ms-3">
+                        <a href="{{ url_for('word_detail', word_id=word.id) }}" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        <button class="btn btn-sm btn-outline-danger" onclick="toggleFavorite({{ word.id }})" data-fav-toggle="{{ word.id }}">
+                            <i class="bi bi-heart"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% elif query or selected_period or selected_category %}
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> По вашему запросу ничего не найдено. Попробуйте изменить параметры поиска.
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            <i class="bi bi-search"></i> Введите запрос для поиска слов в базе данных.
+        </div>
+        {% endif %}
+
+        <!-- Пагинация -->
+        {% if pagination and pagination.pages > 1 %}
+        <nav aria-label="Навигация по страницам" class="mt-4">
+            <ul class="pagination justify-content-center">
+                <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+                    <a class="page-link" href="{{ url_for('search', q=query, period=selected_period, category=selected_category, sort=sort_by, page=pagination.prev_num) if pagination.has_prev else '#' }}">
+                        <i class="bi bi-chevron-left"></i> Назад
+                    </a>
+                </li>
+                
+                {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                    {% if page_num %}
+                        <li class="page-item {% if page_num == page %}active{% endif %}">
+                            <a class="page-link" href="{{ url_for('search', q=query, period=selected_period, category=selected_category, sort=sort_by, page=page_num) }}">
+                                {{ page_num }}
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+                
+                <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+                    <a class="page-link" href="{{ url_for('search', q=query, period=selected_period, category=selected_category, sort=sort_by, page=pagination.next_num) if pagination.has_next else '#' }}">
+                        Вперёд <i class="bi bi-chevron-right"></i>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

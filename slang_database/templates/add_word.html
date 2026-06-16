@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block title %}Добавить слово - База данных "Молодежный сленг"{% endblock %}
+
+{% block content %}
+<h2 class="mb-4"><i class="bi bi-plus-circle"></i> Добавить новое слово</h2>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('add_word') }}">
+                    <div class="row">
+                        <div class="col-md-8 mb-3">
+                            <label for="word" class="form-label">Слово <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="word" name="word" required 
+                                   placeholder="Например: кринж">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="popularity" class="form-label">Популярность (0-10)</label>
+                            <input type="number" class="form-control" id="popularity" name="popularity" 
+                                   min="0" max="10" value="0">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="meaning" class="form-label">Значение <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="meaning" name="meaning" rows="3" required
+                                  placeholder="Опишите значение слова..."></textarea>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="period_id" class="form-label">Период</label>
+                            <select class="form-select" id="period_id" name="period_id">
+                                <option value="">Не указан</option>
+                                {% for period in periods %}
+                                <option value="{{ period.id }}">{{ period.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="category_id" class="form-label">Категория</label>
+                            <select class="form-select" id="category_id" name="category_id">
+                                <option value="">Не указана</option>
+                                {% for category in categories %}
+                                <option value="{{ category.id }}">{{ category.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="synonyms" class="form-label">Синонимы</label>
+                            <input type="text" class="form-control" id="synonyms" name="synonyms"
+                                   placeholder="через запятую: слово1, слово2">
+                            <small class="text-muted">Перечислите синонимы через запятую</small>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="antonyms" class="form-label">Антонимы</label>
+                            <input type="text" class="form-control" id="antonyms" name="antonyms"
+                                   placeholder="через запятую: слово1, слово2">
+                            <small class="text-muted">Перечислите антонимы через запятую</small>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="usage_frequency" class="form-label">Частота использования (1-10)</label>
+                            <input type="number" class="form-control" id="usage_frequency" name="usage_frequency" 
+                                   min="1" max="10" value="5">
+                            <small class="text-muted">1 — редко, 10 — очень часто</small>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="tags" class="form-label">Теги</label>
+                            <input type="text" class="form-control" id="tags" name="tags"
+                                   placeholder="через запятую: интернет, молодежь, 2020">
+                            <small class="text-muted">Перечислите теги через запятую</small>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="origin" class="form-label">Происхождение</label>
+                        <input type="text" class="form-control" id="origin" name="origin"
+                               placeholder="Например: от англ. cringe">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="example" class="form-label">Пример использования</label>
+                        <textarea class="form-control" id="example" name="example" rows="2"
+                                  placeholder="Пример предложения со словом..."></textarea>
+                    </div>
+
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="is_verified" name="is_verified">
+                        <label class="form-check-label" for="is_verified">
+                            Слово проверено экспертом
+                        </label>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('index') }}" class="btn btn-secondary">Отмена</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> Добавить слово
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-lightbulb"></i> Советы</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled small">
+                    <li class="mb-2">
+                        <i class="bi bi-check-circle text-success"></i>
+                        Указывайте точное и полное значение слова
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-check-circle text-success"></i>
+                        Добавляйте примеры использования для наглядности
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-check-circle text-success"></i>
+                        Указывайте происхождение, если оно известно
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-check-circle text-success"></i>
+                        Синонимы и антонимы помогут в поиске
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-check-circle text-success"></i>
+                        Теги упрощают навигацию по базе
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mt-3">
+            <div class="card-header bg-warning">
+                <h5 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Важно</h5>
+            </div>
+            <div class="card-body small">
+                <p class="mb-0">
+                    Перед добавлением убедитесь, что слово ещё нет в базе. 
+                    Проверьте через <a href="{{ url_for('search') }}">поиск</a>.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
